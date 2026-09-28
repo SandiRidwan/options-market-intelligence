@@ -26,6 +26,7 @@ import streamlit as st
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 import analysis as A  # noqa: E402
+import explanations as X  # noqa: E402
 
 C = {"p": "#1F5C3D", "a": "#E4A11B", "d": "#1B2A33", "g": "#8B9AA6",
      "r": "#C0392B", "b": "#2E6F95", "purple": "#6A4C93"}
@@ -66,6 +67,11 @@ def kpi(col, label, value, sub, color):
 
 df = load()
 ins = A.key_insights(df)
+
+
+def exp(key, before=True):
+    """Tampilkan kotak 'Kenapa/Tujuan/Dampak' untuk sebuah elemen."""
+    X.render(key, st=st)
 
 st.sidebar.markdown("### 🎛️ Filters")
 tickers = sorted(df["ticker"].unique())
@@ -109,6 +115,7 @@ t1, t2, t3, t4, t5 = st.tabs(["📊 Volatility", "⚖️ Put/Call", "⚡ Gamma &
 with t1:
     c1, c2 = st.columns(2)
     with c1:
+        X.render("iv_smile", st=st)
         t = A.iv_by_moneyness(d)
         order = ["Deep ITM", "ITM", "ATM", "OTM", "Deep OTM"]
         t = t.reindex([o for o in order if o in t.index])
@@ -121,6 +128,7 @@ with t1:
                                  yaxis_title="IV (%)")
         st.plotly_chart(fig, use_container_width=True)
     with c2:
+        X.render("iv_skew", st=st)
         t = A.iv_skew_by_ticker(d).head(12).sort_values("iv_skew_pct")
         fig = px.bar(x=t["iv_skew_pct"], y=t.index, orientation="h",
                      color=t["iv_skew_pct"], color_continuous_scale="RdYlGn",
@@ -129,6 +137,7 @@ with t1:
                                       title="IV Skew by Ticker")
         st.plotly_chart(fig, use_container_width=True)
     st.markdown("#### Distribusi moneyness & premium")
+    X.render("moneyness", st=st)
     md = A.moneyness_dist(d)
     fig = px.bar(md.reset_index(), x="moneyness_bucket", y="avg_premium",
                  color="moneyness_bucket", color_discrete_sequence=SEQ,
@@ -142,6 +151,7 @@ with t1:
 with t2:
     st.markdown("#### Put/Call Ratio by ticker")
     st.caption("PCR volume-based: <0.8 bullish · 0.8–1.2 neutral · >1.2 bearish/hedged")
+    X.render("pcr", st=st)
     pcrdf = A.put_call_ratio(d).dropna(subset=["pcr_volume"])
     fig = px.bar(pcrdf.sort_values("pcr_volume"), x="pcr_volume", y="ticker",
                  orientation="h", color="pcr_volume",
@@ -154,6 +164,7 @@ with t2:
     st.dataframe(pcrdf, use_container_width=True, hide_index=True)
 
     st.markdown("#### IV Smile — CALL vs PUT")
+    X.render("iv_both_sides", st=st)
     t = A.iv_by_moneyness_side(d)
     order = ["Deep ITM", "ITM", "ATM", "OTM", "Deep OTM"]
     t = t.reindex([o for o in order if o in t.index]).reset_index()
@@ -166,6 +177,7 @@ with t2:
 with t3:
     c1, c2 = st.columns([1.2, 1])
     with c1:
+        X.render("gex", st=st)
         t = A.gex_by_ticker(d).head(15).sort_values("gex_share_pct")
         fig = px.bar(x=t["gex_share_pct"], y=t.index, orientation="h",
                      color=t["gex_share_pct"], color_continuous_scale="Purples",
@@ -180,6 +192,7 @@ with t3:
     st.markdown("#### Open-Interest walls")
     tk = st.selectbox("Ticker", sorted(d["ticker"].unique()),
                       index=0)
+    X.render("oi_walls", st=st)
     walls = A.oi_walls(d, tk, 12).reset_index().sort_values("open_interest")
     fig = px.bar(walls, x="open_interest", y=walls["strike"].astype(int).astype(str),
                  orientation="h", color="open_interest",
@@ -192,6 +205,7 @@ with t3:
 with t4:
     c1, c2 = st.columns(2)
     with c1:
+        X.render("liquidity", st=st)
         t = A.liquidity_by_ticker(d)
         fig = px.scatter(t.reset_index(), x="median_oi", y="median_spread_pct",
                          size="contracts", color="total_volume",
@@ -201,6 +215,7 @@ with t4:
         style(fig, 480).update_layout(title="Liquidity Map (log OI)")
         st.plotly_chart(fig, use_container_width=True)
     with c2:
+        X.render("spread_quality", st=st)
         sq = A.spread_quality(d).reset_index()
         sq.columns = ["quality", "contracts"]
         fig = px.bar(sq, x="quality", y="contracts", color="quality",
@@ -213,11 +228,11 @@ with t4:
     st.dataframe(A.liquidity_by_ticker(d).head(12), use_container_width=True)
 
 with t5:
-    st.markdown("#### Kontrak paling aktif (volume)")
+    X.render("totals", st=st)
     st.dataframe(A.top_contracts(d, 20), use_container_width=True, hide_index=True)
     c1, c2 = st.columns(2)
     with c1:
-        st.markdown("##### Active contracts by moneyness")
+        X.render("vol_by_moneyness", st=st)
         dd = d.copy()
         dd["volume"] = pd.to_numeric(dd["volume"], errors="coerce").fillna(0)
         g = dd.groupby("moneyness_bucket", observed=True).agg(
