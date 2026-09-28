@@ -73,8 +73,8 @@ sel_t = st.sidebar.multiselect("Tickers", tickers, default=tickers[:10])
 types = sorted(df["moneyness_bucket"].dropna().unique())
 sel_m = st.sidebar.multiselect("Moneyness", types, default=types)
 st.sidebar.markdown("---")
-st.sidebar.caption("Sumber: options scan (yfinance) · 41 ticker · 469 CALL "
-                   "contracts. ⚠️ Hanya CALL — put/call ratio tidak tersedia.")
+st.sidebar.caption("Sumber: yfinance · 41 ticker · CALL + PUT lengkap. "
+                   "⚠️ Open interest dari Yahoo sering 0 → PCR berbasis VOLUME.")
 
 st.markdown(
     f"""<div style="background:linear-gradient(100deg,{C['p']},{C['purple']});
@@ -98,10 +98,13 @@ kpi(k2, "Median IV", f"{d.loc[d['impliedVolatility']>0,'impliedVolatility'].medi
     "implied volatility", C["r"])
 kpi(k3, "ITM share", f"{d['inTheMoney'].mean()*100:.0f}%", "in-the-money", C["b"])
 kpi(k4, "Median spread", f"{d['spread_pct'].median()*100:.2f}%", "bid-ask", C["a"])
-kpi(k5, "Total OI", f"{d['openInterest'].sum()/1e3:.0f}k", "open interest", C["purple"])
+pcr = A.overall_pcr(d)
+kpi(k5, "Put/Call Ratio", f"{pcr.get('pcr_volume') or 0:.2f}",
+    "volume-based · <1 bullish", C["purple"])
 st.write("")
 
-t1, t2, t3, t4 = st.tabs(["📊 Volatility", "⚡ Gamma & OI", "💧 Liquidity", "🎯 Contracts"])
+t1, t2, t3, t4, t5 = st.tabs(["📊 Volatility", "⚖️ Put/Call", "⚡ Gamma & OI",
+                              "💧 Liquidity", "🎯 Contracts"])
 
 with t1:
     c1, c2 = st.columns(2)
@@ -137,6 +140,30 @@ with t1:
     st.plotly_chart(fig, use_container_width=True)
 
 with t2:
+    st.markdown("#### Put/Call Ratio by ticker")
+    st.caption("PCR volume-based: <0.8 bullish · 0.8–1.2 neutral · >1.2 bearish/hedged")
+    pcrdf = A.put_call_ratio(d).dropna(subset=["pcr_volume"])
+    fig = px.bar(pcrdf.sort_values("pcr_volume"), x="pcr_volume", y="ticker",
+                 orientation="h", color="pcr_volume",
+                 color_continuous_scale="RdYlGn_r", text="pcr_volume")
+    fig.update_traces(texttemplate="%{text:.2f}", textposition="outside")
+    fig.add_vline(x=1.0, line_dash="dash", line_color="#9AA7B4")
+    style(fig, 620).update_layout(coloraxis_showscale=False,
+                                  title="Put/Call Ratio (volume)")
+    st.plotly_chart(fig, use_container_width=True)
+    st.dataframe(pcrdf, use_container_width=True, hide_index=True)
+
+    st.markdown("#### IV Smile — CALL vs PUT")
+    t = A.iv_by_moneyness_side(d)
+    order = ["Deep ITM", "ITM", "ATM", "OTM", "Deep OTM"]
+    t = t.reindex([o for o in order if o in t.index]).reset_index()
+    fig = px.bar(t, x="moneyness_bucket", y=["CALL", "PUT"], barmode="group",
+                 color_discrete_map={"CALL": C["b"], "PUT": C["r"]},
+                 labels={"value": "IV (%)", "moneyness_bucket": "", "variable": ""})
+    style(fig, 400).update_layout(title="IV Smile: CALL vs PUT (put wing lebih tinggi = hedging mahal)")
+    st.plotly_chart(fig, use_container_width=True)
+
+with t3:
     c1, c2 = st.columns([1.2, 1])
     with c1:
         t = A.gex_by_ticker(d).head(15).sort_values("gex_share_pct")
@@ -162,7 +189,7 @@ with t2:
                                   title=f"OI Walls — {tk}")
     st.plotly_chart(fig, use_container_width=True)
 
-with t3:
+with t4:
     c1, c2 = st.columns(2)
     with c1:
         t = A.liquidity_by_ticker(d)
@@ -185,7 +212,7 @@ with t3:
     st.markdown("#### Top likuid (spread tersempit)")
     st.dataframe(A.liquidity_by_ticker(d).head(12), use_container_width=True)
 
-with t4:
+with t5:
     st.markdown("#### Top contracts by composite score")
     st.dataframe(A.top_contracts(d, 20), use_container_width=True, hide_index=True)
     c1, c2 = st.columns(2)

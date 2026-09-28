@@ -140,6 +140,9 @@ def chart_moneyness_dist(df):
 
 def chart_score_components(df):
     t = A.score_decomposition(df)
+    if t.empty or "delta_score" not in t.columns:
+        print("  [skip] score components (kolom skor tidak ada di dataset)")
+        return
     order = ["Deep ITM", "ITM", "ATM", "OTM", "Deep OTM"]
     t = t.reindex([o for o in order if o in t.index])
     fig, ax = plt.subplots(figsize=(9, 5.5))
@@ -158,7 +161,11 @@ def chart_score_components(df):
 
 
 def chart_top_contracts(df):
-    t = A.top_contracts(df, 15).sort_values("composite_score")
+    t = A.top_contracts(df, 15)
+    if "composite_score" not in t.columns:
+        print("  [skip] top contracts chart (butuh composite_score)")
+        return
+    t = t.sort_values("composite_score")
     fig, ax = plt.subplots(figsize=(9.5, 7))
     labels = [f"{r.ticker} ${r.strike:,.0f}  (IV {r.impliedVolatility:.0f}%)"
               for r in t.itertuples()]
@@ -173,6 +180,52 @@ def chart_top_contracts(df):
     _save(fig, "08_top_contracts")
 
 
+
+def chart_pcr(df):
+    t = A.put_call_ratio(df).dropna(subset=["pcr_volume"])
+    t = t.sort_values("pcr_volume", ascending=False)
+    show = pd.concat([t.head(12), t.tail(12)]).drop_duplicates()
+    show = show.sort_values("pcr_volume")
+    fig, ax = plt.subplots(figsize=(9.5, 8))
+    colors = [C["r"] if v > 1.2 else (C["p"] if v < 0.8 else C["g"])
+              for v in show["pcr_volume"]]
+    bars = ax.barh(show["ticker"], show["pcr_volume"], color=colors, zorder=3)
+    ax.axvline(1.0, color=C["d"], lw=1.4, ls="--", zorder=4)
+    ax.axvline(0.8, color=C["p"], lw=1, ls=":", zorder=4)
+    ax.axvline(1.2, color=C["r"], lw=1, ls=":", zorder=4)
+    for b, v, cv, pv in zip(bars, show["pcr_volume"], show["call_volume"],
+                            show["put_volume"]):
+        ax.text(v + 0.05, b.get_y() + b.get_height()/2,
+                f"{v:.2f}  (C {cv:,} / P {pv:,})", va="center", fontsize=7,
+                color=C["d"])
+    ax.set_xlabel("Put/Call Ratio (volume)")
+    ax.set_title("Put/Call Ratio by Ticker\n(<1 bullish, >1 bearish/hedged; garis = 1.0)")
+    ax.set_xlim(0, show["pcr_volume"].max() * 1.5)
+    ax.grid(axis="y", visible=False)
+    _save(fig, "09_put_call_ratio")
+
+
+def chart_iv_both_sides(df):
+    t = A.iv_by_moneyness_side(df)
+    order = ["Deep ITM", "ITM", "ATM", "OTM", "Deep OTM"]
+    t = t.reindex([o for o in order if o in t.index])
+    fig, ax = plt.subplots(figsize=(9.5, 5.5))
+    x = np.arange(len(t)); w = 0.38
+    ax.bar(x - w/2, t.get("CALL"), width=w, color=C["b"], label="CALL", zorder=3)
+    ax.bar(x + w/2, t.get("PUT"), width=w, color=C["r"], label="PUT", zorder=3)
+    for i in range(len(t)):
+        for off, col in [(-w/2, "CALL"), (w/2, "PUT")]:
+            v = t[col].iloc[i]
+            if pd.notna(v):
+                ax.text(i + off, v + 0.8, f"{v:.0f}%", ha="center", fontsize=7.5)
+    ax.set_xticks(x); ax.set_xticklabels(t.index)
+    ax.set_ylabel("Implied Volatility (%)")
+    ax.set_title("IV Smile — CALL vs PUT\n(put wing lebih tinggi = premi lindung nilai)")
+    ax.legend(frameon=False)
+    ax.grid(axis="x", visible=False)
+    _save(fig, "10_iv_both_sides")
+
+
 def build_all():
     df = A.load()
     print("Membuat visualisasi...")
@@ -185,6 +238,8 @@ def build_all():
     chart_moneyness_dist(df)
     chart_score_components(df)
     chart_top_contracts(df)
+    chart_pcr(df)
+    chart_iv_both_sides(df)
     print(f"[OK] {FIG}")
 
 

@@ -1,11 +1,11 @@
 ﻿# 📊 Options Market Intelligence — Laporan
 
-Analisis struktur pasar opsi dari 469 kontrak CALL (41 ticker).
+Analisis struktur pasar opsi dari 4.855 kontrak (CALL + PUT, 41 ticker).
 
 ## 1. Ringkasan
 | Metrik | Nilai |
 |--------|-------|
-| Kontrak | 469 CALL (100%) |
+| Kontrak | 4.855 (2.448 CALL + 2.407 PUT) |
 | Ticker | 41 |
 | Expiry | 2 (5 & 7 Agu 2026) |
 | Median IV | 43% |
@@ -26,8 +26,14 @@ Analisis struktur pasar opsi dari 469 kontrak CALL (41 ticker).
 - Waspadai kontrak spread lebar (biaya eksekusi tinggi).
 - Skew tinggi = ekspektasi pergerakan tajam pada ticker tsb.
 
-## 4. Keterbatasan (jujur)
-- Data hanya CALL → Put/Call Ratio tidak tersedia.
+## 4. Put/Call Ratio
+- Agregat PCR (volume) = 0.50 → sentimen bullish keseluruhan.
+- HYG PCR 9.89 (hedging kredit ekstrem); indeks SPY/QQQ ≈ 1.0 (hedged).
+- Saham individual bullish kuat (BAC 0.10).
+- Put wing IV (Deep OTM 166%) >> call wing (50%) = premi lindung nilai mahal.
+
+## 5. Keterbatasan (jujur)
+- openInterest dari Yahoo sering 0 → PCR memakai volume, bukan OI.
 - GEX = proxy dari OI (bukan gamma Black-Scholes penuh).
 - Snapshot tunggal; bukan time-series.
 - Bukan saran investasi.

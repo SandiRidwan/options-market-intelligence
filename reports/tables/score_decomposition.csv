@@ -1,6 +1,1 @@
-moneyness_bucket,contracts,delta_score,vol_oi_score,gamma_score,liquidity_bonus,composite
-Deep ITM,24,9.8,10.1,25.3,0.4,14.2
-ITM,93,41.6,10.3,51.7,0.9,34.1
-ATM,236,81.2,17.6,76.8,4.3,62.1
-OTM,102,42.4,10.3,97.5,1.8,46.7
-Deep OTM,14,11.0,6.4,86.7,2.1,30.4
+,contracts,delta_score,vol_oi_score,gamma_score,liquidity_bonus,composite_score

@@ -1,0 +1,19 @@
+{
+  "contracts": 4855,
+  "tickers": 41,
+  "calls": 2448,
+  "puts": 2407,
+  "itm_pct": 41.7,
+  "median_iv_pct": 6.3,
+  "median_spread_pct": 8.97,
+  "total_oi": 9328,
+  "total_volume": 5279240,
+  "top_oi_ticker": "DIA",
+  "top_gex_strike": "DIA $428",
+  "pcr_volume": 0.699,
+  "pcr_oi": 12.326,
+  "call_volume": 3107266,
+  "put_volume": 2171974,
+  "call_oi": 700,
+  "put_oi": 8628
+}

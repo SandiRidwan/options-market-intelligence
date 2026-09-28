@@ -1,0 +1,40 @@
+rows=4855 tickers=41 calls=2448 puts=2407
+
+[KEY INSIGHTS]
+  contracts           : 4855
+  tickers             : 41
+  calls               : 2448
+  puts                : 2407
+  itm_pct             : 41.7
+  median_iv_pct       : 6.3
+  median_spread_pct   : 8.97
+  total_oi            : 9328
+  total_volume        : 5279240
+  top_oi_ticker       : DIA
+  top_gex_strike      : DIA $428
+  pcr_volume          : 0.699
+  pcr_oi              : 12.326
+  call_oi             : 700
+  put_oi              : 8628
+  call_volume         : 3107266
+  put_volume          : 2171974
+
+[PCR by ticker - top 8]
+ticker  call_volume  put_volume  call_oi  put_oi  pcr_volume  pcr_oi      sentiment
+   DIA         4974        4977      700    8628        1.00   12.33 Bearish/Hedged
+  AAPL       118468       65224        0       0        0.55     NaN        Neutral
+   AMD        36738       31819        0       0        0.87     NaN        Neutral
+  AMZN       102372       46255        0       0        0.45     NaN        Neutral
+  AVGO        18161       10332        0       0        0.57     NaN        Neutral
+   BAC        34036        3265        0       0        0.10     NaN        Neutral
+  COST        12112        8108        0       0        0.67     NaN        Neutral
+   CRM         8093        5737        0       0        0.71     NaN        Neutral
+
+[IV smile by side]
+option_type       CALL   PUT     n
+moneyness_bucket                  
+Deep ITM           1.8  47.0  1440
+ITM                1.5  21.1   870
+ATM                2.7   2.9   865
+OTM               19.0   0.7   743
+Deep OTM          42.0   1.1   937

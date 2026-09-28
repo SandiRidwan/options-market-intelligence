@@ -60,18 +60,21 @@ adalah **lapisan analis** — mengukur struktur pasar opsi secara menyeluruh.
 
 | Metric | Value |
 |-------:|:------|
-| 📊 Sumber | hasil opsi scan (yfinance) — 41 ticker, 2 expiry |
-| 🧾 Kontrak | **469 CALL** (223 ITM, 246 OTM) |
-| 📈 Median IV | **43%** (rentang 0–275%) |
+| 📊 Sumber | **yfinance** — 41 ticker · CALL + PUT lengkap |
+| 🧾 Kontrak | **4.855 = 2.448 CALL + 2.407 PUT** (lengkap!) |
+| 📈 Put/Call Ratio | **0.50** (volume) — sentimen bullish |
 | 💧 Median spread | **7,9%** (bid-ask) |
-| 🗂️ Total OI | 1.696.080 kontrak |
-| 📁 Output | Streamlit app · 8 charts · 12 tabel insight |
+| 🗂️ Total volume | 5,3 juta kontrak |
+| 📁 Output | Streamlit app · 10 charts · tabel insight |
 
 </div>
 
-> ⚠️ **Catatan data (jujur):** dataset hanya berisi **CALL**, tanpa PUT. Karena itu
-> **Put/Call Ratio tidak dihitung** (datanya tidak ada). Analisis difokuskan pada
-> apa yang benar-benar tersedia — dan itu disampaikan terbuka.
+> ✅ **Dataset kini CALL + PUT lengkap** (dikumpulkan via yfinance) — sehingga
+> **Put/Call Ratio** dapat dihitung.
+>
+> ⚠️ **Catatan jujur:** `openInterest` dari Yahoo hampir selalu 0 untuk kuotasi
+> realtime, sehingga **PCR berbasis volume** (bukan OI). Bila OI kosong, laporan
+> mengatakannya — bukan memaksakan metrik.
 
 ---
 
@@ -129,6 +132,29 @@ karena konsentrasi posisi di sana.
 
 Peta likuiditas: ticker di **kiri-bawah** = OI besar & spread sempit (terbaik untuk
 eksekusi). Spread sangat lebar (>8%) menandakan kontrak mahal untuk ditransaksikan.
+
+### 7. Put/Call Ratio (analisis baru)
+
+![PCR](reports/figures/09_put_call_ratio.png)
+
+**Put/Call Ratio** (volume-based) mengukur sentimen pasar:
+
+| Ticker | PCR | Arti |
+|--------|----:|------|
+| **HYG** | 9,89 | Hedging kredit ekstrem (put jauh dominan) |
+| QQQ / SPY | ~1,0 | Indeks di-hedge (seimbang) |
+| **BAC / CVX / KO** | 0,10–0,16 | Saham individual bullish kuat |
+| **Agregat** | **0,50** | Sentimen keseluruhan bullish |
+
+**Pola kunci:** *indeks di-hedge* (PCR ≈ 1), sementara *saham individual bullish*
+(PCR < 0,5) — pola klasik "hedge indeks, tapi bullish saham".
+
+### 8. IV Smile Dua-Sisi (CALL vs PUT)
+
+![IV both sides](reports/figures/10_iv_both_sides.png)
+
+**Put wing jauh lebih mahal:** Deep-OTM put **166%** vs call 50%. Ini adalah
+*put skew* — pasar membayar premium besar untuk perlindungan penurunan.
 
 ### 6. Distribusi Moneyness & Skor
 
