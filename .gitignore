@@ -4,5 +4,8 @@
 venv/
 .ipynb_checkpoints/
 reports/_*
-data/raw/*.csv
-!data/raw/.gitkeep
+
+# Kredensial
+.env
+*.key
+*credentials*.json
