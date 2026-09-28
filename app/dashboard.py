@@ -213,17 +213,21 @@ with t4:
     st.dataframe(A.liquidity_by_ticker(d).head(12), use_container_width=True)
 
 with t5:
-    st.markdown("#### Top contracts by composite score")
+    st.markdown("#### Kontrak paling aktif (volume)")
     st.dataframe(A.top_contracts(d, 20), use_container_width=True, hide_index=True)
     c1, c2 = st.columns(2)
     with c1:
-        sc = A.score_decomposition(d)
-        order = ["Deep ITM", "ITM", "ATM", "OTM", "Deep OTM"]
-        sc = sc.reindex([o for o in order if o in sc.index])
-        fig = px.line(sc.reset_index(), x="moneyness_bucket", y="composite",
-                      markers=True, labels={"composite": "composite", "moneyness_bucket": ""})
-        fig.update_traces(line_color=C["a"], line_width=3, marker_size=10)
-        style(fig, 400).update_layout(title="Composite score by moneyness")
+        st.markdown("##### Active contracts by moneyness")
+        dd = d.copy()
+        dd["volume"] = pd.to_numeric(dd["volume"], errors="coerce").fillna(0)
+        g = dd.groupby("moneyness_bucket", observed=True).agg(
+            contracts=("volume", "size"), total_volume=("volume", "sum")).reset_index()
+        fig = px.bar(g, x="moneyness_bucket", y="total_volume",
+                     color="moneyness_bucket", color_discrete_sequence=SEQ,
+                     text="contracts")
+        fig.update_traces(texttemplate="n=%{text}", textposition="outside")
+        style(fig, 400).update_layout(showlegend=False,
+                                      title="Total volume by moneyness")
         st.plotly_chart(fig, use_container_width=True)
     with c2:
         fig = px.scatter(d, x="moneyness", y="impliedVolatility",
