@@ -27,6 +27,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 import analysis as A  # noqa: E402
 import explanations as X  # noqa: E402
+import insights_content  # noqa: E402,F401
+import insight as INS  # noqa: E402
 
 C = {"p": "#1F5C3D", "a": "#E4A11B", "d": "#1B2A33", "g": "#8B9AA6",
      "r": "#C0392B", "b": "#2E6F95", "purple": "#6A4C93"}
@@ -127,6 +129,7 @@ with t1:
         style(fig).update_layout(title="IV Smile / Skew by Moneyness",
                                  yaxis_title="IV (%)")
         st.plotly_chart(fig, use_container_width=True)
+        INS.box("iv_smile", st=st)
     with c2:
         X.render("iv_skew", st=st)
         t = A.iv_skew_by_ticker(d).head(12).sort_values("iv_skew_pct")
@@ -136,6 +139,7 @@ with t1:
         style(fig, 480).update_layout(coloraxis_showscale=False,
                                       title="IV Skew by Ticker")
         st.plotly_chart(fig, use_container_width=True)
+        INS.box("iv_skew", st=st)
     st.markdown("#### Distribusi moneyness & premium")
     X.render("moneyness", st=st)
     md = A.moneyness_dist(d)
@@ -147,6 +151,7 @@ with t1:
                                   title="Average premium by moneyness",
                                   yaxis_title="$")
     st.plotly_chart(fig, use_container_width=True)
+    INS.box("moneyness", st=st)
 
 with t2:
     st.markdown("#### Put/Call Ratio by ticker")
@@ -162,6 +167,7 @@ with t2:
                                   title="Put/Call Ratio (volume)")
     st.plotly_chart(fig, use_container_width=True)
     st.dataframe(pcrdf, use_container_width=True, hide_index=True)
+    INS.box("pcr", st=st)
 
     st.markdown("#### IV Smile — CALL vs PUT")
     X.render("iv_both_sides", st=st)
@@ -173,6 +179,7 @@ with t2:
                  labels={"value": "IV (%)", "moneyness_bucket": "", "variable": ""})
     style(fig, 400).update_layout(title="IV Smile: CALL vs PUT (put wing lebih tinggi = hedging mahal)")
     st.plotly_chart(fig, use_container_width=True)
+    INS.box("iv_both_sides", st=st)
 
 with t3:
     c1, c2 = st.columns([1.2, 1])
@@ -185,6 +192,7 @@ with t3:
         style(fig, 520).update_layout(coloraxis_showscale=False,
                                       title="Gamma Exposure by Ticker")
         st.plotly_chart(fig, use_container_width=True)
+        INS.box("gex", st=st)
     with c2:
         st.markdown("##### Top GEX strikes")
         st.dataframe(A.top_gex_strikes(d, 12), use_container_width=True,
@@ -201,6 +209,7 @@ with t3:
     style(fig, 420).update_layout(coloraxis_showscale=False,
                                   title=f"OI Walls — {tk}")
     st.plotly_chart(fig, use_container_width=True)
+    INS.box("oi_walls", st=st)
 
 with t4:
     c1, c2 = st.columns(2)
@@ -214,6 +223,7 @@ with t4:
                          log_x=True)
         style(fig, 480).update_layout(title="Liquidity Map (log OI)")
         st.plotly_chart(fig, use_container_width=True)
+        INS.box("liquidity", st=st)
     with c2:
         X.render("spread_quality", st=st)
         sq = A.spread_quality(d).reset_index()
@@ -224,12 +234,14 @@ with t4:
         style(fig, 480).update_layout(showlegend=False,
                                       title="Bid-ask spread quality")
         st.plotly_chart(fig, use_container_width=True)
+        INS.box("spread_quality", st=st)
     st.markdown("#### Top likuid (spread tersempit)")
     st.dataframe(A.liquidity_by_ticker(d).head(12), use_container_width=True)
 
 with t5:
     X.render("totals", st=st)
     st.dataframe(A.top_contracts(d, 20), use_container_width=True, hide_index=True)
+    INS.box("totals", st=st)
     c1, c2 = st.columns(2)
     with c1:
         X.render("vol_by_moneyness", st=st)
@@ -244,6 +256,7 @@ with t5:
         style(fig, 400).update_layout(showlegend=False,
                                       title="Total volume by moneyness")
         st.plotly_chart(fig, use_container_width=True)
+        INS.box("vol_by_moneyness", st=st)
     with c2:
         fig = px.scatter(d, x="moneyness", y="impliedVolatility",
                          color="moneyness_bucket", size="openInterest",
