@@ -275,6 +275,123 @@ tiga hal — sesuai standar analisis profesional:
 Klik kotak **"💡 … — Kenapa · Tujuan · Dampak"** di atas tiap grafik untuk membukanya.
 Narasi tersimpan di `src/explanations.py` (terpisah, konsisten, dapat diaudit).
 
+<!-- INSIGHTS:START -->
+## 💡 Insight & Rekomendasi (per analisis)
+
+_Setiap analisis disertai kesimpulan, rekomendasi tindakan, dan risiko bila diabaikan — bukan sekadar angka._
+
+### 🟠 IV Smile
+**Kesimpulan.** IV smile/skew menunjukkan volatilitas tersirat berbeda antar-strike: opsi jauh dari harga (OTM) umumnya lebih mahal. Skew negatif (put lebih mahal) menandakan pasar membayar premium untuk perlindungan turun.
+
+**Rekomendasi tindakan:**
+- Skew put mahal → pasar cemas turun; bila pandanganmu berbeda, JUAL perlindungan (jual put) untuk panen premi — dengan manajemen risiko ketat.
+- Hindari beli opsi OTM yang sudah mahal (IV tinggi) — edge tipis setelah premi membengkak.
+- Gunakan skew sebagai indikator sentimen: perubahannya lebih informatif dari levelnya.
+
+**⚠️ Risiko bila diabaikan.** Menjual perlindungan saat pasar cemas memberi premi menarik, tetapi risiko ekor (crash) bisa jauh melebihi premi terkumpul. Tanpa lindung nilai, kerugian dapat tak terbatas.
+
+### 🟠 IV Both Sides
+**Kesimpulan.** IV smile CALL vs PUT membandingkan sisi call & put. Bila wing PUT lebih tinggi dari CALL, pasar membayar lebih untuk perlindungan turun — menandakan bias pesimis/hedging.
+
+**Rekomendasi tindakan:**
+- Put wing mahal → permintaan lindung tinggi; jual put (panen premi) bila pandanganmu tidak sepessimis pasar, dengan manajemen risiko ketat.
+- Selisih call-put wing melebar = kekhawatiran naik; gunakan sebagai sinyal rotasi.
+- Jangan jual perlindungan tanpa lindung nilai risiko ekor (crash).
+
+**⚠️ Risiko bila diabaikan.** Menjual perlindungan saat pasar cemas memberi premi menarik, tetapi risiko ekor bisa jauh melebihi premi. Tanpa hedge, kerugian bisa tak terbatas saat crash.
+
+### 🟠 PCR
+**Kesimpulan.** Put/Call Ratio mengukur rasio volume put vs call. PCR tinggi = banyak beli perlindungan (pesimis); PCR rendah = banyak taruhan naik (optimis). PCR sering dipakai sebagai indikator kontrarian.
+
+**Rekomendasi tindakan:**
+- PCR ekstrem (sangat tinggi/rendah) sering menandai titik balik — pertimbangkan sebagai sinyal kontrarian dengan konfirmasi lain.
+- Jangan pakai PCR sendirian; gabungkan dengan skew & GEX untuk gambaran utuh.
+- Bedakan volume (sentimen harian) dari open interest (posisi mengendap).
+
+**⚠️ Risiko bila diabaikan.** Menganggap PCR sebagai sinyal arah langsung berbahaya — ia mengukur AKTIVITAS, bukan arah pasti. Trader yang salah membaca bisa terjebak di titik balik yang salah.
+
+### 🟠 GEX
+**Kesimpulan.** Gamma Exposure (GEX) menunjukkan konsentrasi gamma dealer. GEX positif cenderung meredam volatilitas (dealer hedging stabilkan harga); GEX negatif cenderung memperkuat gerakan (volatilitas melebar).
+
+**Rekomendasi tindakan:**
+- Dalam rezim GEX positif, harga cenderung mean-reverting → strategi range/jual volatilitas lebih cocok.
+- Dalam rezim GEX negatif, gerakan cenderung ekstrem → kurangi risiko arah, pertimbangkan beli volatilitas.
+- Pantau level GEX sebagai zona support/resistance yang mungkin bertahan.
+
+**⚠️ Risiko bila diabaikan.** Mengabaikan rezim GEX berarti salah memilih strategi: menjual volatilitas di rezim negatif dapat berujung kerugian besar saat harga bergerak ekstrem.
+
+### 🟠 Liquidity
+**Kesimpulan.** Liquidity map mengidentifikasi kontrak dengan volume & OI tinggi. Likuiditas adalah pembeda antara teori & eksekusi nyata — kontrak tak likuid berarti biaya transaksi tersembunyi.
+
+**Rekomendasi tindakan:**
+- Batasi trading pada kontrak likuid (volume/OI memadai); ukur dampaknya pada slippage.
+- Untuk posisi besar, pecah menjadi beberapa eksekusi di kontrak likuid.
+- Gunakan likuiditas sebagai filter WAJIB sebelum memilih strategi.
+
+**⚠️ Risiko bila diabaikan.** Strategi sempurna di atas kertas bisa merugi hanya karena slippage & spread di kontrak tak likuid. Biaya eksekusi mengonsumsi seluruh edge.
+
+### 🟠 Spread Quality
+**Kesimpulan.** Kualitas bid-ask spread (relatif premium) menentukan biaya masuk-keluar. Spread lebar menggerus keuntungan sejak transaksi pertama; spread sempit memungkinkan strategi frekuensi lebih tinggi.
+
+**Rekomendasi tindakan:**
+- Ukur biaya round-trip (masuk+keluar) sebelum menilai profitabilitas — spread adalah biaya nyata.
+- Prioritaskan kontrak dengan spread quality baik untuk strategi aktif.
+- Untuk spread lebar, gunakan pesanan limit (bukan market) untuk menekan biaya.
+
+**⚠️ Risiko bila diabaikan.** Mengabaikan spread membuat backtest tampak menguntungkan tapi rugi di realitas. Biaya tersembunyi ini adalah pembunuh diam-diam paling umum di trading opsi.
+
+### 🔵 IV Skew
+**Kesimpulan.** IV skew berbeda antar-ticker: sebagian aset menunjukkan ketakutan turun yang lebih tinggi (skew curam), sebagian netral. Perbandingan ini mengungkap di mana risiko paling diprihakkan pasar.
+
+**Rekomendasi tindakan:**
+- Ticker dengan skew curam = permintaan lindung tinggi; cari peluang di mana ekspektasi pasar mungkin terlalu pesimis.
+- Diversifikasi: jangan bertaruh pada satu arah skew seluruh portofolio.
+- Pantau pergeseran skew antar-ticker sebagai sinyal rotasi risiko.
+
+**⚠️ Risiko bila diabaikan.** Mengabaikan skew lintas-aset membuat portofolio rentan pada satu skenario risiko. Konsentrasi eksposur arah = kerugian besar bila skenario meleset.
+
+### 🔵 Moneyness
+**Kesimpulan.** Distribusi moneyness & premium menunjukkan di mana likuiditas & aktivitas terkonsentrasi — biasanya dekat ATM. Pemahaman ini menentukan pilihan strike yang dapat dieksekusi tanpa slippage besar.
+
+**Rekomendasi tindakan:**
+- Pilih strike dekat ATM untuk likuiditas terbaik; hindari strike sangat OTM yang tipis (sulit keluar).
+- Sesuaikan strategi dengan distribusi: bila aktivitas terkonsentrasi, ikut likuiditas, jangan melawan.
+- Waspadai premium mahal di strike populer (permintaan tinggi).
+
+**⚠️ Risiko bila diabaikan.** Berniaga di strike tidak likuid berarti slippage besar & sulit keluar — keuntungan teori menguap dalam eksekusi.
+
+### 🔵 OI Walls
+**Kesimpulan.** Open-Interest Walls menandai strike dengan OI besar — sering bertindak sebagai magnet atau tembok harga saat mendekati expiry (pinning effect).
+
+**Rekomendasi tindakan:**
+- Perlakukan OI wall sebagai level support/resistance kandidat saat expiry.
+- Hindari posisi arah yang melawan tembok OI besar tanpa katalis kuat.
+- Waspadai pergeseran OI menjelang expiry (posisi bergeser = level berubah).
+
+**⚠️ Risiko bila diabaikan.** Memasuki posisi melawan tembok OI besar bisa terjebak konsolidasi berkepanjangan (harga dipin) yang menguras nilai waktu opsi.
+
+### 🔵 Totals
+**Kesimpulan.** Total volume per moneyness menunjukkan di mana minat pasar terkonsentrasi — mengungkap apakah aktivitas dominan spekulatif (OTM jauh) atau institutional (ATM/near-OTM).
+
+**Rekomendasi tindakan:**
+- Konsentrasi di OTM jauh mengindikasikan spekulasi/lotre; waspadai pergerakan impulsif.
+- Konsentrasi dekat ATM menandakan aktivitas institutional; harga lebih terinformasi & stabil.
+- Gunakan pola ini untuk menyesuaikan ekspektasi volatilitas.
+
+**⚠️ Risiko bila diabaikan.** Membaca salah sifat aliran (spekulatif vs institutional) membuat ekspektasi volatilitas keliru. Respons yang salah terhadap sinyal bisa memperbesar kerugian.
+
+### 🔵 VOL BY Moneyness
+**Kesimpulan.** Volume & IV per strike memetakan di mana premi tinggi & aktivitas besar. Kombinasi keduanya sering menandai zona kepentingan pasar yang paling diperhatikan.
+
+**Rekomendasi tindakan:**
+- Fokuskan analisis pada strike-volume tinggi: di situ informasi & likuiditas bertemu.
+- Strike dengan IV tinggi + volume besar = ekspektasi pergerakan dari pelaku besar.
+- Hindari menebak di strike sepi (volume kecil).
+
+**⚠️ Risiko bila diabaikan.** Mengambil posisi di zona sepi tanpa sinyal berarti bertaruh pada kebetulan. Pasar yang tidak aktif sering bergerak tidak terduga.
+
+<!-- INSIGHTS:END -->
+
 ## 👤 Author
 
 <div align="center">
