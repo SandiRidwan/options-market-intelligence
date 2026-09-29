@@ -29,6 +29,7 @@ import analysis as A  # noqa: E402
 import explanations as X  # noqa: E402
 import insights_content  # noqa: E402,F401
 import insight as INS  # noqa: E402
+import echarts_charts as EC  # noqa: E402  (boxplot, graph)
 
 C = {"p": "#1F5C3D", "a": "#E4A11B", "d": "#1B2A33", "g": "#8B9AA6",
      "r": "#C0392B", "b": "#2E6F95", "purple": "#6A4C93"}
@@ -130,6 +131,27 @@ with t1:
                                  yaxis_title="IV (%)")
         st.plotly_chart(fig, use_container_width=True)
         INS.box("iv_smile", st=st)
+
+        st.markdown("#### Sebaran IV per bucket moneyness (boxplot ECharts)")
+        st.caption("Boxplot menunjukkan **median IV + sebaran + kontrak "
+                   "pencilan** per bucket. Kotak jauh lebih tinggi di kedua "
+                   "sayap (Deep ITM / Deep OTM) = **volatility smile** klasik: "
+                   "pasar membayar premi lebih untuk strike ekstrem.")
+        try:
+            _order = ["Deep ITM", "ITM", "ATM", "OTM", "Deep OTM"]
+            _ivd = d[d["impliedVolatility"] > 0]
+            _byk = {k: (_ivd[_ivd["moneyness_bucket"] == k]["impliedVolatility"]
+                        * 100).tolist() for k in _order
+                    if (k in set(_ivd["moneyness_bucket"]))}
+            if _byk:
+                EC.boxplot(
+                    categories=list(_byk.keys()),
+                    values=[v for v in _byk.values()],
+                    title="Sebaran IV per moneyness (%)", yname="IV (%)",
+                    height=440)
+        except Exception as _e:  # noqa: BLE001
+            st.caption(f"boxplot tak tersedia ({_e}).")
+        INS.box("iv_smile", st=st)
     with c2:
         X.render("iv_skew", st=st)
         t = A.iv_skew_by_ticker(d).head(12).sort_values("iv_skew_pct")
@@ -209,6 +231,42 @@ with t3:
     style(fig, 420).update_layout(coloraxis_showscale=False,
                                   title=f"OI Walls — {tk}")
     st.plotly_chart(fig, use_container_width=True)
+    INS.box("oi_walls", st=st)
+
+    st.markdown("#### Jaringan konsentrasi OI (graph ECharts)")
+    st.caption("Graph menggambarkan **hubungan ticker ↔ strike** berbobot OI: "
+               "ticker besar terhubung ke strike-strike dengan open interest "
+               "tinggi. Ini membaca *di mana* posisi menumpuk secara struktural "
+               "— dinding strike yang sama bisa muncul di banyak ticker "
+               "(level indeks/psikologis bersama).")
+    try:
+        _g = (d.assign(oi_num=pd.to_numeric(d["openInterest"], errors="coerce"))
+              .dropna(subset=["oi_num"]))
+        _top_t = (_g.groupby("ticker")["oi_num"].sum().nlargest(10).index.tolist())
+        _gg = _g[_g["ticker"].isin(_top_t)]
+        _top_s = (_gg.groupby("strike")["oi_num"].sum().nlargest(18).index.tolist())
+        _nodes, _links, _seen = [], [], set()
+        for t in _top_t:
+            _nodes.append({"name": str(t), "symbolSize": 22,
+                           "itemStyle": {"color": "#E4A11B"}})
+        for s in _top_s:
+            _nm = f"{int(s)}"
+            _nodes.append({"name": _nm, "symbolSize": 12,
+                           "itemStyle": {"color": "#2E6F95"}})
+        for r in _gg[_gg["strike"].isin(_top_s)].itertuples():
+            _key = (str(r.ticker), str(int(r.strike)))
+            if _key in _seen:
+                continue
+            _seen.add(_key)
+            _links.append({"source": str(r.ticker), "target": str(int(r.strike)),
+                           "value": float(r.oi_num)})
+        if _nodes and _links:
+            EC.graph(_nodes, _links[:220],
+                     title="Ticker ↔ strike menurut open interest", height=540)
+        else:
+            st.caption("Open interest tidak tersedia untuk membentuk graph.")
+    except Exception as _e:  # noqa: BLE001
+        st.caption(f"graph tak tersedia ({_e}).")
     INS.box("oi_walls", st=st)
 
 with t4:
