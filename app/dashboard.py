@@ -151,7 +151,7 @@ with t1:
                     height=440)
         except Exception as _e:  # noqa: BLE001
             st.caption(f"boxplot tak tersedia ({_e}).")
-        INS.box("iv_smile", st=st)
+        INS.box("echarts_boxplot", st=st)
     with c2:
         X.render("iv_skew", st=st)
         t = A.iv_skew_by_ticker(d).head(12).sort_values("iv_skew_pct")
@@ -267,7 +267,7 @@ with t3:
             st.caption("Open interest tidak tersedia untuk membentuk graph.")
     except Exception as _e:  # noqa: BLE001
         st.caption(f"graph tak tersedia ({_e}).")
-    INS.box("oi_walls", st=st)
+    INS.box("echarts_graph", st=st)
 
 with t4:
     c1, c2 = st.columns(2)

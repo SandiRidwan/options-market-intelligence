@@ -232,3 +232,54 @@ register(
         "setiap keputusan menyertakan justifikasi yang dapat diaudit."),
     tingkat="tinggi",
 )
+
+
+# --------------------------------------------------------------------------
+# Chart ECharts (v2) — insight & rekomendasi.
+# --------------------------------------------------------------------------
+
+register(
+    "echarts_boxplot",
+    kesimpulan=(
+        "Boxplot IV per bucket moneyness menampilkan MEDIAN, SEBARAN, dan "
+        "PENCILAN. Bila kotak di kedua sayap (Deep ITM/Deep OTM) lebih tinggi "
+        "dari ATM, itu tanda VOLATILITY SMILE klasik: pasar membayar premi lebih "
+        "untuk strike ekstrem (lindung nilai & spekulasi). Sebaran lebar = "
+        "penetapan harga opsi tidak merata (likuiditas tidak merata)."),
+    rekomendasi=[
+        "Untuk penjual opsi (premium seller), sayap dengan IV tinggi menawarkan "
+        "premi menarik — tetapi pahami risiko ekor yang menyertainya.",
+        "Untuk pembeli proteksi, sadari Anda membayar 'smile premium'; "
+        "bandingkan instrumen lindung nilai alternatif.",
+        "Waspadai bucket dengan sebaran sangat lebar: harga antar-kontrak tidak "
+        "konsisten, tanda likuiditas tipis.",
+    ],
+    risiko=(
+        "Membaca satu nilai IV tanpa melihat sebaran menyembunyikan bahwa strike "
+        "tertentu jauh lebih mahal dari yang tampak. Keputusan hedging/spekulasi "
+        "berbasis angka tunggal bisa salah harga. Edukasional, bukan saran investasi."),
+    tingkat="sedang",
+)
+
+register(
+    "echarts_graph",
+    kesimpulan=(
+        "Graph memetakan hubungan ticker↔strike berdasarkan open interest. "
+        "Simpul ticker besar yang terhubung ke banyak strike menandakan posisi "
+        "terkonsentrasi; strike yang muncul di BANYAK ticker menandakan level "
+        "harga 'bersama' (mis. angka psikologis / level indeks) tempat posisi "
+        "menumpuk. Ini mengungkap struktur posisi, bukan sekadar volume."),
+    rekomendasi=[
+        "Tandai strike yang terhubung ke banyak ticker sebagai level kunci — "
+        "potensi magnet harga / dinding dukungan-resistensi.",
+        "Untuk ticker dengan konsentrasi OI ekstrem pada satu strike, waspadai "
+        "pergerakan tajam bila level itu ditembus (pemicu gamma).",
+        "Pantau perubahan jaringan antar-waktu; pergeseran simpul pusat = "
+        "pergeseran fokus pasar.",
+    ],
+    risiko=(
+        "Open interest dari sumber gratis (Yahoo) sering tidak lengkap/0, "
+        "sehingga jaringan bisa bias. Menyimpulkan posisi institusi dari data "
+        "tak lengkap berisiko keliru. Edukasional, bukan saran investasi."),
+    tingkat="tinggi",
+)
